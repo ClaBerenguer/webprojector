@@ -365,7 +365,8 @@
         }
 
         /* Invert filter */
-        .inverted #overlayImage {
+        .inverted #overlayImage,
+        .inverted #receiverOverlayImage {
             filter: invert(1);
         }
 
@@ -477,6 +478,8 @@
                 </div>
             </div>
             <video id="remoteVideo" autoplay playsinline style="display: none;"></video>
+            <!-- Imagen guía sincronizada desde el emisor -->
+            <img id="receiverOverlayImage" src="" alt="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; opacity: 0.5; mix-blend-mode: screen; display: none;">
         </div>
         
         <div class="controls" id="receiverControls" style="display: none;">
@@ -706,6 +709,40 @@
                     await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
                 }
             });
+            
+            // Escuchar cambios en la imagen overlay desde el emisor
+            database.ref(`rooms/${roomCode}/overlayImage`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const receiverOverlay = document.getElementById('receiverOverlayImage');
+                    
+                    if (data.src) {
+                        receiverOverlay.src = data.src;
+                        receiverOverlay.style.display = 'block';
+                    }
+                    
+                    if (data.opacity !== undefined) {
+                        receiverOverlay.style.opacity = data.opacity;
+                    }
+                    
+                    if (data.scale !== undefined) {
+                        receiverOverlay.style.transform = `scale(${data.scale})`;
+                    }
+                    
+                    if (data.blendMode) {
+                        receiverOverlay.style.mixBlendMode = data.blendMode;
+                    }
+                    
+                    if (data.inverted !== undefined) {
+                        const container = document.getElementById('receiverContainer');
+                        if (data.inverted) {
+                            container.classList.add('inverted');
+                        } else {
+                            container.classList.remove('inverted');
+                        }
+                    }
+                }
+            });
         }
 
         // Status updates
@@ -755,7 +792,19 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    document.getElementById('overlayImage').src = e.target.result;
+                    const imageData = e.target.result;
+                    document.getElementById('overlayImage').src = imageData;
+                    
+                    // Sincronizar imagen con Firebase para el receptor
+                    if (roomCode) {
+                        database.ref(`rooms/${roomCode}/overlayImage`).set({
+                            src: imageData,
+                            opacity: document.getElementById('opacitySlider').value / 100,
+                            scale: document.getElementById('scaleSlider').value / 100,
+                            blendMode: document.getElementById('blendMode').value,
+                            inverted: isInverted
+                        });
+                    }
                 };
                 reader.readAsDataURL(file);
             }
@@ -763,15 +812,27 @@
 
         function updateOpacity(value) {
             document.getElementById('overlayImage').style.opacity = value / 100;
+            // Sincronizar con Firebase
+            if (roomCode) {
+                database.ref(`rooms/${roomCode}/overlayImage/opacity`).set(value / 100);
+            }
         }
 
         function updateScale(value) {
             const scale = value / 100;
             document.getElementById('overlayImage').style.transform = `scale(${scale})`;
+            // Sincronizar con Firebase
+            if (roomCode) {
+                database.ref(`rooms/${roomCode}/overlayImage/scale`).set(scale);
+            }
         }
 
         function updateBlendMode(mode) {
             document.getElementById('overlayImage').style.mixBlendMode = mode;
+            // Sincronizar con Firebase
+            if (roomCode) {
+                database.ref(`rooms/${roomCode}/overlayImage/blendMode`).set(mode);
+            }
         }
 
         function toggleInvert() {
@@ -785,6 +846,11 @@
             } else {
                 container.classList.remove('inverted');
                 btn.classList.remove('active');
+            }
+            
+            // Sincronizar con Firebase
+            if (roomCode) {
+                database.ref(`rooms/${roomCode}/overlayImage/inverted`).set(isInverted);
             }
         }
 
