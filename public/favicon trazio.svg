@@ -1,0 +1,13 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="156.00000000000006 325.99999999999994 349.9999999999999 350.00000000000017" width="350" height="352">
+	<style>
+		tspan { white-space:pre } 
+		.s0 { fill: #000000 } 
+		.s1 { fill: none;stroke: #ffffff;stroke-miterlimit:10;stroke-width: 29 } 
+	</style>
+	<g id="Layer 1">
+		<text id="" style="transform: matrix(1,0,0,1,266,311)" >
+		</text>
+		<path id="Forma 2" fill-rule="evenodd" class="s0" d="m194 331h275c17.67 0 32 14.33 32 32v275c0 17.67-14.33 32-32 32h-275c-17.67 0-32-14.33-32-32v-275c0-17.67 14.33-32 32-32z"/>
+		<path id="Forma 1" fill-rule="evenodd" class="s1" d="m225 383c0 0 79.42 101.13 198.74 36.4 28.23-15.32 11.83-45.14-25.17-29.9-140.9 58.02-59.16 231.15-59.16 231.15"/>
+	</g>
+</svg>
